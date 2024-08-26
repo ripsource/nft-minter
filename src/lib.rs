@@ -8,8 +8,15 @@ pub mod nft_generator;
 pub mod types;
 pub mod utils;
 
+// Preview event
+#[derive(ScryptoSbor, ScryptoEvent)]
+struct Generation {
+    key_image_url: Url
+}
+
 #[blueprint]
 #[types(NFTImage, Vec<u8>, Hash, NonFungibleLocalId)]
+#[events(Generation)]
 mod nft_minter {
     struct NftMinter {
         image_nft_manager: ResourceManager,
@@ -85,6 +92,11 @@ mod nft_minter {
                 self.existing_hashes.get(&svg_data_hash).is_none(),
                 "This image already exsists!"
             );
+
+            // emit event for preview
+            Runtime::emit_event(Generation {
+                key_image_url: Url::of(svg_data_uri.clone())
+            });
 
             // Mint the NFT
             let nft_id = NonFungibleLocalId::integer(self.next_nft_id);
